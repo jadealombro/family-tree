@@ -67,6 +67,11 @@ Rules of thumb adopted for this project (SPEC.md §8.2). Each gets its exact com
 **What:** A commit is a labelled snapshot. A good one does one thing and its message explains why. Small commits are easy to review, to undo, and to find a bug in (`git bisect`).
 **Here:** Step 1.1: "Add gitignore and README" and "Add specification and learning log" are separate commits because they are separate ideas.
 
+### Author identity, and when rewriting history is safe
+**What:** Every commit stores an author name and email, visible to anyone who can see the repo. GitHub gives each account a private noreply address for public work. History can be rewritten freely while it exists only on your machine; once pushed, rewriting breaks everyone else's copy and is a last resort.
+**WordPress way:** Like changing the author on draft posts before publishing, versus after the posts are live and linked.
+**Here:** Step 1.1. `git config user.email` without `--global` set the noreply address for this repo only; `git rebase --root -x "git commit --amend --reset-author"` rewrote the two unpushed commits. Note the commit hashes changed: a commit's id is a hash of its full content, author included.
+
 ---
 
 ## Model and effort log
