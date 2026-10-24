@@ -1,0 +1,29 @@
+# Family data: never commit. Paper-note photos and transcriptions live here.
+/notes/
+
+# Secrets and environment files (the example files ARE committed)
+.env
+.env.*
+!.env.example
+
+# Database dumps and exports (contain real people)
+*.sql
+*.sql.gz
+*.sqlite
+/exports/
+
+# Dependencies and build output
+node_modules/
+vendor/
+.next/
+out/
+build/
+dist/
+coverage/
+
+# Logs and tooling noise
+*.log
+.DS_Store
+.claude/settings.local.json
+.idea/
+.vscode/
