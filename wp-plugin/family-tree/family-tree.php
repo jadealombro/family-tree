@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Family Tree
  * Description:       Stores people and family relationships and serves them to the family tree app.
- * Version:           0.1.0
+ * Version:           0.2.0
  * Requires at least: 6.5
  * Requires PHP:      8.1
  * Author:            Jade
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'FAMILY_TREE_VERSION', '0.1.0' );
+define( 'FAMILY_TREE_VERSION', '0.2.0' );
 define( 'FAMILY_TREE_FILE', __FILE__ );
 define( 'FAMILY_TREE_PATH', plugin_dir_path( __FILE__ ) );
 
@@ -41,7 +41,5 @@ spl_autoload_register(
 		}
 	}
 );
-
-register_activation_hook( __FILE__, array( Plugin::class, 'activate' ) );
 
 Plugin::init();
