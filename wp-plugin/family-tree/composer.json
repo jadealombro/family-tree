@@ -7,10 +7,11 @@
 		"php": ">=8.1"
 	},
 	"require-dev": {
-		"squizlabs/php_codesniffer": "^3.9",
-		"wp-coding-standards/wpcs": "^3.0",
+		"dealerdirect/phpcodesniffer-composer-installer": "^1.0",
 		"phpcompatibility/phpcompatibility-wp": "^2.1",
-		"dealerdirect/phpcodesniffer-composer-installer": "^1.0"
+		"phpunit/phpunit": "^11.5",
+		"squizlabs/php_codesniffer": "^3.9",
+		"wp-coding-standards/wpcs": "^3.0"
 	},
 	"config": {
 		"sort-packages": true,
@@ -20,6 +21,7 @@
 	},
 	"scripts": {
 		"lint": "phpcs",
-		"lint:fix": "phpcbf"
+		"lint:fix": "phpcbf",
+		"test": "phpunit"
 	}
 }

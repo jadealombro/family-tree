@@ -25,6 +25,7 @@ final class Plugin {
 	public static function init(): void {
 		add_action( 'init', array( Post_Types::class, 'register' ) );
 		add_action( 'init', array( Meta::class, 'register' ) );
+		add_action( 'rest_api_init', array( Rest::class, 'register_routes' ) );
 		// Priority 20: after the post types exist, because roles are built from them.
 		add_action( 'init', array( self::class, 'maybe_upgrade' ), 20 );
 	}

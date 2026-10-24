@@ -32,3 +32,6 @@ jobs:
 
       - name: Check coding standards
         run: composer lint
+
+      - name: Run unit tests
+        run: composer test
