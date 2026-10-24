@@ -72,6 +72,20 @@ Rules of thumb adopted for this project (SPEC.md §8.2). Each gets its exact com
 **WordPress way:** Like changing the author on draft posts before publishing, versus after the posts are live and linked.
 **Here:** Step 1.1. `git config user.email` without `--global` set the noreply address for this repo only; `git rebase --root -x "git commit --amend --reset-author"` rewrote the two unpushed commits. Note the commit hashes changed: a commit's id is a hash of its full content, author included.
 
+### Composer, and why the lock file is committed
+**What:** Composer is the PHP package manager. `composer.json` says what you want; `composer.lock` records the exact versions it installed. Committing the lock means your Mac and the CI server get identical tools.
+**WordPress way:** Like the difference between "any recent jQuery" and a pinned file. `package.json` and `package-lock.json` will be the JavaScript twin of this pair.
+**Here:** Step 1.4. `vendor/` (the installed packages) is ignored; the two Composer files are committed.
+
+### Linting with the WordPress Coding Standards
+**What:** A tool that reads code and reports style and safety problems before a human has to. The WordPress standard checks escaping, naming, and documentation. A check is only trustworthy if it can fail: we proved this one exits 0 on our code and 2 on a deliberately bad file with an unescaped `$_GET`.
+**WordPress way:** The same ruleset WordPress core uses on itself. Prefix rules do automatically what you do by habit in theme functions.
+**Here:** Step 1.4, `phpcs.xml.dist`. Run it with `composer lint` from `wp-plugin/family-tree`.
+
+### Continuous integration (CI)
+**What:** A server runs your checks on every proposed change, so quality does not depend on anyone remembering. GitHub Actions reads workflow files from `.github/workflows/`.
+**Here:** Step 1.4, `ci.yml`. It runs on every pull request, with read-only permissions (least privilege), and later becomes a required check so `main` cannot receive failing code.
+
 ---
 
 ## Model and effort log
