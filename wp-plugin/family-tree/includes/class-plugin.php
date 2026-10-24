@@ -12,29 +12,34 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Wires the plugin into WordPress. Later steps register post types, REST routes
- * and the editor from here.
+ * Wires the plugin into WordPress. Later steps register REST routes and the
+ * editor from here.
  */
 final class Plugin {
+
+	public const VERSION_OPTION = 'family_tree_version';
 
 	/**
 	 * Attach hooks. Called once when the plugin file loads.
 	 */
 	public static function init(): void {
-		add_action( 'plugins_loaded', array( self::class, 'on_plugins_loaded' ) );
+		add_action( 'init', array( Post_Types::class, 'register' ) );
+		add_action( 'init', array( Meta::class, 'register' ) );
+		// Priority 20: after the post types exist, because roles are built from them.
+		add_action( 'init', array( self::class, 'maybe_upgrade' ), 20 );
 	}
 
 	/**
-	 * Runs after all plugins are loaded. Nothing to do yet.
+	 * Run the install and upgrade work whenever the code version differs from
+	 * the version stored in the database. Unlike an activation hook, this also
+	 * runs when new code is deployed over an already-active plugin.
 	 */
-	public static function on_plugins_loaded(): void {
-		// Intentionally empty: the data model arrives in Phase 2.
-	}
+	public static function maybe_upgrade(): void {
+		if ( FAMILY_TREE_VERSION === get_option( self::VERSION_OPTION ) ) {
+			return;
+		}
 
-	/**
-	 * Runs once when the plugin is activated. Records the installed version.
-	 */
-	public static function activate(): void {
-		update_option( 'family_tree_version', FAMILY_TREE_VERSION );
+		Roles::install();
+		update_option( self::VERSION_OPTION, FAMILY_TREE_VERSION );
 	}
 }
