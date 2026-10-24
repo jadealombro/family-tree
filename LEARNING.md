@@ -86,6 +86,31 @@ Rules of thumb adopted for this project (SPEC.md §8.2). Each gets its exact com
 **What:** A server runs your checks on every proposed change, so quality does not depend on anyone remembering. GitHub Actions reads workflow files from `.github/workflows/`.
 **Here:** Step 1.4, `ci.yml`. It runs on every pull request, with read-only permissions (least privilege), and later becomes a required check so `main` cannot receive failing code.
 
+### Custom post types as a data model, no ACF
+**What:** A custom post type is a table of records with built-in storage, permissions, and admin screens. Fields are post meta registered in code with `register_post_meta`, each with a type, a default, and a sanitize callback.
+**WordPress way:** ACF generates the same thing from a UI. Code gives you the same result that is reviewable in a pull request, identical on every machine, and testable.
+**Here:** Step 2.1. `Post_Types`, `Meta`, and `Sanitize` in `includes/`. People and Families are separate types because every relationship lives on a Family (SPEC.md section 3).
+
+### Sanitize at the door, not in the form
+**What:** Validation attached to the field itself means bad data is cleaned whether it arrives by WP-CLI, an import file, the editor, or a future API. A sanitizer is a pure function: a raw value in, a clean value out, which makes it easy to test.
+**Here:** `Sanitize` handles partial dates ("1950-02-29" is rejected because 1950 was not a leap year), enumerations, and the ordered children list. We exercised 23 edge cases with a throwaway script before real tests exist in step 2.2.
+
+### Protected meta (the underscore prefix)
+**What:** Meta keys that start with `_` are hidden from the Custom Fields box, so nobody can edit them in a way that skips our sanitizers.
+**Here:** Every field is stored as `_ft_...`.
+
+### Capabilities read from the post type, not hand-typed
+**What:** `capability_type` plus `map_meta_cap` makes WordPress generate permission names such as `edit_ft_people`. `get_post_type_object()->cap` lists them, so the Family Editor role is built from the real names.
+**WordPress way:** The same machinery that gives Editors rights over posts and Authors rights over their own. We add one custom role.
+**Here:** `Roles::install()`.
+
+### Version-check upgrades instead of activation hooks
+**What:** An activation hook runs once, when someone clicks Activate. A stored version compared to the code version runs on the next page load after any deploy, including a GitHub Action that copies new files over an active plugin.
+**Here:** `Plugin::maybe_upgrade()` on `init` priority 20, after the post types are registered. We removed the activation hook from step 1.3 for this reason, which is a normal thing to do when a design outgrows an early choice.
+
+### Lint false positives, and when to rename instead of exclude
+**What:** PHPCompatibility flagged our method `family_fields` as a removed PHP extension, because of its name prefix. Renaming it was cheaper than adding an exclusion rule. Keep exclusions for when renaming is not possible.
+
 ---
 
 ## Model and effort log
@@ -95,6 +120,8 @@ Rules of thumb adopted for this project (SPEC.md §8.2). Each gets its exact com
 | 2026-10-24 | Planning interview (Phase 0) | Stay on Fable, no switch | Data modelling and architecture are where the strongest reasoning earns its cost; the interview itself is cheap either way | Good: the paper notes reshaped the model, and the strongest model caught the cross-branch marriage issue |
 | 2026-10-24 | Stack recommendation and SPEC.md | `/effort high` for one turn | The most consequential output of the project; worth extra thinking time | Pending review |
 | 2026-10-24 | Phase 1.1 Git and repo setup | `/model sonnet`, `/effort medium` | Routine, well-documented setup work; speed matters more than depth | Pending review |
+| 2026-10-24 | Phase 1.2 to 1.4: Local site, plugin skeleton, lint and CI | stayed on Sonnet, medium | Routine setup | Went well. One real mistake to log: a `PATCH` branch-protection command that cannot create a missing section; caught by reading the rule back. Verify, do not assume. |
+| 2026-10-24 | Phase 2.1 data model | stayed on Sonnet, medium | The design is already written in SPEC.md, so this is careful implementation | Pending review |
 
 ### How to read this table over time
 - If a Sonnet step went smoothly, that kind of step is a Sonnet step from now on.
