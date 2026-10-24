@@ -34,6 +34,19 @@
 		</properties>
 	</rule>
 
+	<!-- Test files follow PHPUnit naming (Some_Test.php), not WordPress class-file naming. -->
+	<rule ref="WordPress.Files.FileName">
+		<exclude-pattern>/tests/</exclude-pattern>
+	</rule>
+
+	<!-- The test bootstrap deliberately imitates WordPress's own global names (ABSPATH, wp_json_encode). -->
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<exclude-pattern>/tests/bootstrap.php</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.WP.AlternativeFunctions">
+		<exclude-pattern>/tests/bootstrap.php</exclude-pattern>
+	</rule>
+
 	<!-- Capabilities we define ourselves, so the sniff does not flag them as unknown. -->
 	<rule ref="WordPress.WP.Capabilities">
 		<properties>
