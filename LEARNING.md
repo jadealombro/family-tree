@@ -111,6 +111,36 @@ Rules of thumb adopted for this project (SPEC.md §8.2). Each gets its exact com
 ### Lint false positives, and when to rename instead of exclude
 **What:** PHPCompatibility flagged our method `family_fields` as a removed PHP extension, because of its name prefix. Renaming it was cheaper than adding an exclusion rule. Keep exclusions for when renaming is not possible.
 
+### A REST route, and what `permission_callback` really is
+**What:** `register_rest_route` makes a URL under `/wp-json/`. Its `permission_callback` runs before the handler and decides whether the caller may proceed. A route with no real check is public; WordPress now warns if you forget one.
+**WordPress way:** The same API your block editor uses. Instead of PHP templates reading the database, a URL returns JSON.
+**Here:** Step 2.2, `Rest::register_routes()` and `Rest::check_key()`. The route is `/wp-json/family-tree/v1/tree`.
+
+### A shared secret between two servers
+**What:** The Next.js server and WordPress share one long random key. Next.js sends it in a header; WordPress compares. Because only servers hold it, the visitor's browser never sees WordPress at all.
+**Here:** `Auth` compares in constant time with `hash_equals`, so timing leaks nothing about how close a guess was, and refuses any key under 32 characters so an empty `wp-config.php` entry never opens the API. The key lives in `wp-config.php` (outside Git) as `FAMILY_TREE_API_KEY`.
+
+### Keep logic out of WordPress so it can be tested fast
+**What:** `Tree_Builder` and `Auth` call no WordPress functions. They take arrays in and return arrays out, so 20 tests run in a few milliseconds with no database. The thin WordPress layer (`Tree_Source`, `Rest`) only gathers data and passes it along.
+**WordPress way:** Like moving the real work out of a template and into a plain function.
+**Here:** Step 2.2. The WordPress-dependent pieces will get integration tests later; for now they are covered by your manual checkpoint.
+
+### A test that cannot fail proves nothing
+**What:** After tests pass, break the code on purpose (a "mutation") and check that a test turns red. We removed the new-branch rule and weakened the key check; both were caught. We did the same to the linter in step 1.4.
+**Here:** `tests/Tree_Builder_Test.php`, `tests/Auth_Test.php`. Run them with `composer test`.
+
+### Privacy by allow-list
+**What:** Safe code lists what it will include instead of listing what to hide. `Tree_Source` reads ten named fields and nothing else, so adding a new private field to the data model can never leak by default. One test pins the exact keys of a person in the payload, so adding a key means changing the test on purpose.
+**Here:** SPEC.md section 4, items 5 and 6.
+
+### Shape the API for the client: normalised maps and precomputed facts
+**What:** The payload holds people and families as maps keyed by ID, with relationships as ID lists. This is how React apps like to hold graph data: any person is one lookup, and nothing is duplicated. Generation, branch, married-in, and descendant counts are computed once on the server, in one place with tests.
+**Here:** `Tree_Builder::build()`. Cousin marriages are resolved by a written rule: a child takes the branch of the first listed partner.
+
+### Dev dependencies and CI steps
+**What:** `composer require --dev` adds a tool that is installed for development but not shipped. CI now runs `composer lint` and `composer test` on every pull request.
+**Here:** `phpunit/phpunit` in `composer.json`; second step added to `ci.yml`.
+
 ---
 
 ## Model and effort log
@@ -122,6 +152,7 @@ Rules of thumb adopted for this project (SPEC.md §8.2). Each gets its exact com
 | 2026-10-24 | Phase 1.1 Git and repo setup | `/model sonnet`, `/effort medium` | Routine, well-documented setup work; speed matters more than depth | Pending review |
 | 2026-10-24 | Phase 1.2 to 1.4: Local site, plugin skeleton, lint and CI | stayed on Sonnet, medium | Routine setup | Went well. One real mistake to log: a `PATCH` branch-protection command that cannot create a missing section; caught by reading the rule back. Verify, do not assume. |
 | 2026-10-24 | Phase 2.1 data model | stayed on Sonnet, medium | The design is already written in SPEC.md, so this is careful implementation | Pending review |
+| 2026-10-24 | Phase 2.2 tree endpoint | stayed on Sonnet, medium | Written spec; the branch-assignment algorithm is the hardest part, so I wrote its edge cases as tests first-class and mutation-tested them instead of upgrading the model | Pending review. Signal to watch: if cousin-marriage or remarriage rules need repeated fixes, that is when to try Opus for this kind of algorithm. |
 
 ### How to read this table over time
 - If a Sonnet step went smoothly, that kind of step is a Sonnet step from now on.
